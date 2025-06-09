@@ -379,7 +379,6 @@ hashkit crack hash_value -w wordlist.txt
 
 ## Support
 
-- 📖 **Documentation**: [docs/](docs/)
 - 🐛 **Issues**: [GitHub Issues](https://github.com/abderrahimghazali/hashkit/issues)
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/abderrahimghazali/hashkit/discussions)
 
