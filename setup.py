@@ -11,7 +11,7 @@ setup(
     description="Professional hash identification and cracking tool for security professionals",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/hashkit",
+    url="https://github.com/abderrahimghazali/hashkit",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
