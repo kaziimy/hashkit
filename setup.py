@@ -31,10 +31,6 @@ setup(
     install_requires=[
         "click>=8.0.0",
         "colorama>=0.4.6",
-        "hashlib",
-        "hmac",
-        "base64",
-        "binascii",
         "passlib>=1.7.4",
         "bcrypt>=4.0.0",
         "pycryptodome>=3.15.0",

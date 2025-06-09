@@ -23,14 +23,7 @@ init(autoreset=True)
 
 def print_banner():
     """Print HashKit banner"""
-    banner = f"""
-{Fore.CYAN}╔══════════════════════════════════════════════════════════════╗
-║                         HashKit v{__version__}                        ║
-║              Professional Hash Analysis & Cracking              ║
-║                                                                  ║
-║  ⚠️  FOR AUTHORIZED SECURITY TESTING ONLY ⚠️                   ║
-╚══════════════════════════════════════════════════════════════╝{Style.RESET_ALL}
-"""
+    banner = f"{Fore.MAGENTA}HashKit v{__version__}{Style.RESET_ALL}"
     print(banner)
 
 
@@ -54,13 +47,25 @@ def print_info(message: str):
     click.echo(f"{Fore.BLUE}[INFO] {message}{Style.RESET_ALL}")
 
 
-@click.group()
+class HashKitGroup(click.Group):
+    """Custom group class to show banner on help"""
+    
+    def get_help(self, ctx):
+        """Override to show banner before help"""
+        if not ctx.params.get('quiet', False):
+            print_banner()
+        return super().get_help(ctx)
+
+
+@click.group(cls=HashKitGroup, invoke_without_command=True)
 @click.version_option(version=__version__)
 @click.option('--quiet', '-q', is_flag=True, help='Quiet mode')
-def cli(quiet):
+@click.pass_context
+def cli(ctx, quiet):
     """HashKit - Professional Hash Analysis and Cracking Tool"""
-    if not quiet:
-        print_banner()
+    if ctx.invoked_subcommand is None:
+        # Show help when no command is provided (banner will be shown by get_help)
+        print(ctx.get_help())
 
 
 @cli.command()

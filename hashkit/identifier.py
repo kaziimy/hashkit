@@ -5,7 +5,7 @@ Hash identification engine
 import hashlib
 import re
 import binascii
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Any
 from .models import HashType, HashInfo
 from .exceptions import IdentificationError
 

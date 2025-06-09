@@ -293,6 +293,8 @@ class HashAnalyzer:
     
     def _calculate_hash_entropy(self, hash_value: str) -> float:
         """Calculate Shannon entropy of a hash"""
+        import math
+        
         if not hash_value:
             return 0.0
         
@@ -300,12 +302,12 @@ class HashAnalyzer:
         char_counts = Counter(hash_value)
         length = len(hash_value)
         
-        # Calculate entropy
+        # Calculate entropy using Shannon's formula
         entropy = 0.0
         for count in char_counts.values():
             probability = count / length
             if probability > 0:
-                entropy -= probability * (probability.bit_length() - 1)
+                entropy -= probability * math.log2(probability)
         
         return entropy
     
