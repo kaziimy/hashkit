@@ -165,4 +165,8 @@ Desktop.ini
 # Configuration files with sensitive data
 config.ini
 secrets.json
-.secrets 
+.secrets
+
+# HashKit wordlists directory
+wordlists/
+*.txt 

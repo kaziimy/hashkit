@@ -100,7 +100,7 @@ def identify(hash_value, verbose):
 
 @cli.command()
 @click.argument('hash_value')
-@click.option('--wordlist', '-w', required=True, help='Wordlist file path')
+@click.option('--wordlist', '-w', help='Wordlist file path (auto-detects from wordlists/ if not specified)')
 @click.option('--type', '-t', 'hash_type', type=click.Choice([t.value for t in HashType]), 
               help='Hash type (auto-detect if not specified)')
 @click.option('--mode', '-m', type=click.Choice([m.value for m in AttackMode]), 
@@ -109,11 +109,51 @@ def identify(hash_value, verbose):
 @click.option('--max-length', default=8, help='Maximum length for brute force')
 @click.option('--mask', help='Mask for mask attack (?l?u?d?s)')
 def crack(hash_value, wordlist, hash_type, mode, threads, max_length, mask):
-    """Crack a hash"""
+    """Crack a hash
+    
+    If no wordlist is specified with -w, automatically uses wordlists from the local wordlists/ folder.
+    
+    Examples:
+    hashkit crack 5d41402abc4b2a76b9719d911017c592                    # Auto-detect wordlist
+    hashkit crack 5d41402abc4b2a76b9719d911017c592 -w custom.txt      # Use specific wordlist
+    """
     try:
         # Convert string enums
         attack_mode = AttackMode(mode)
         hash_type_enum = HashType(hash_type) if hash_type else None
+        
+        # Handle automatic wordlist detection
+        if not wordlist:
+            manager = WordlistManager()
+            available_wordlists = manager.list_cached_wordlists()
+            
+            if not available_wordlists:
+                print_error("No wordlists available")
+                print_info("Download wordlists using:")
+                print("  hashkit wordlist download rockyou")
+                print("  hashkit wordlist download john")
+                print("  hashkit wordlist download common-passwords")
+                return
+            
+            # Prefer rockyou if available, otherwise use the largest wordlist
+            preferred_names = ['rockyou', 'common-passwords', 'john', 'darkweb2017']
+            chosen_wordlist = None
+            
+            # Try to find preferred wordlists in order
+            for pref_name in preferred_names:
+                for wl in available_wordlists:
+                    if wl['name'] == pref_name:
+                        chosen_wordlist = wl
+                        break
+                if chosen_wordlist:
+                    break
+            
+            # If no preferred wordlist found, use the largest one
+            if not chosen_wordlist:
+                chosen_wordlist = max(available_wordlists, key=lambda x: x['lines'])
+            
+            wordlist = chosen_wordlist['path']
+            print_info(f"Auto-selected wordlist: {chosen_wordlist['name']} ({chosen_wordlist['lines']:,} words)")
         
         # Initialize cracker
         cracker = HashCracker(threads=threads)
@@ -256,7 +296,18 @@ def list_wordlists():
 @click.argument('name')
 @click.option('--force', is_flag=True, help='Force re-download')
 def download_wordlist(name, force):
-    """Download popular wordlists"""
+    """Download popular wordlists for password cracking
+    
+    Available wordlists:
+    - rockyou: Famous RockYou wordlist (14M+ passwords)
+    - common-passwords: Top 1M most common passwords  
+    - john: John the Ripper default wordlist
+    - darkweb2017: Top 10K passwords from dark web breaches
+    
+    Examples:
+    hashkit wordlist download rockyou
+    hashkit wordlist download common-passwords --force
+    """
     try:
         manager = WordlistManager()
         
@@ -306,6 +357,48 @@ def validate_wordlist(file_path):
         
     except Exception as e:
         print_error(f"Validation failed: {e}")
+
+
+@wordlist.command('clear')
+@click.option('--confirm', is_flag=True, help='Skip confirmation prompt')
+def clear_wordlists(confirm):
+    """Clear all cached wordlists
+    
+    This will delete all downloaded wordlists from the local wordlists/ directory.
+    Use with caution as this cannot be undone!
+    
+    Examples:
+    hashkit wordlist clear
+    hashkit wordlist clear --confirm
+    """
+    try:
+        manager = WordlistManager()
+        
+        # Show what will be deleted
+        wordlists = manager.list_cached_wordlists()
+        if not wordlists:
+            print_info("No wordlists found to clear")
+            return
+        
+        total_size = sum(wl['size'] for wl in wordlists)
+        print_info(f"Found {len(wordlists)} wordlists ({total_size:,} bytes)")
+        
+        for wl in wordlists:
+            print(f"  - {wl['name']} ({wl['size']:,} bytes)")
+        
+        # Confirmation
+        if not confirm:
+            response = click.confirm("\nAre you sure you want to delete all wordlists?")
+            if not response:
+                print_info("Operation cancelled")
+                return
+        
+        # Clear the cache
+        result = manager.clear_cache()
+        print_success(result['message'])
+        
+    except Exception as e:
+        print_error(f"Failed to clear wordlists: {e}")
 
 
 @cli.command()

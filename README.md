@@ -46,10 +46,12 @@ Users are responsible for complying with all applicable laws and regulations. Th
 
 ### 📋 Wordlist Management
 - **Automatic downloads** of popular wordlists (rockyou, SecLists, etc.)
+- **Local storage** in project wordlists/ folder
+- **Auto-detection** of available wordlists for cracking
 - **Wordlist validation** and statistics
 - **Custom wordlist generation** with rules
 - **Wordlist merging** and deduplication
-- **Caching system** for efficient storage
+- **Clear command** for easy cleanup
 
 ### 🖥️ Professional CLI
 - **Intuitive command structure** with subcommands
@@ -92,7 +94,10 @@ hashkit identify -v aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d
 
 ### Hash Cracking
 ```bash
-# Dictionary attack
+# Auto-detect wordlist from local wordlists/ folder
+hashkit crack 5d41402abc4b2a76b9719d911017c592
+
+# Dictionary attack with specific wordlist
 hashkit crack 5d41402abc4b2a76b9719d911017c592 -w rockyou.txt
 
 # Specify hash type and attack mode
@@ -122,12 +127,17 @@ hashkit difficulty 5d41402abc4b2a76b9719d911017c592
 
 ### Wordlist Management
 ```bash
-# List cached wordlists
+# List cached wordlists (stored in local wordlists/ folder)
 hashkit wordlist list
 
-# Download popular wordlists
+# Download popular wordlists to local wordlists/ folder
 hashkit wordlist download rockyou
 hashkit wordlist download common-passwords
+hashkit wordlist download john
+hashkit wordlist download darkweb2017
+
+# Clear all cached wordlists
+hashkit wordlist clear
 
 # Validate wordlist
 hashkit wordlist validate /path/to/wordlist.txt
@@ -156,6 +166,10 @@ hashkit wordlist validate /path/to/wordlist.txt
 ### Dictionary Attack
 Uses wordlists to test common passwords:
 ```bash
+# Auto-detect wordlist from wordlists/ folder
+hashkit crack hash_value
+
+# Use specific wordlist
 hashkit crack hash_value -w rockyou.txt -m dictionary
 ```
 
@@ -197,6 +211,36 @@ Combines multiple attack methods automatically:
 ```bash
 hashkit crack hash_value -w wordlist.txt -m hybrid
 ```
+
+## Wordlist Storage
+
+HashKit stores wordlists locally in the project directory:
+
+### Local Storage Structure
+```
+hashkit/
+├── wordlists/           # Auto-created wordlist storage
+│   ├── rockyou.txt     # Downloaded wordlists
+│   ├── john.txt
+│   └── custom.txt      # Your personal wordlists
+├── hashkit/            # Source code
+└── README.md
+```
+
+### Auto-Detection Priority
+When no `-w` option is specified, HashKit automatically searches the `wordlists/` folder:
+
+1. **rockyou** (preferred - 14M+ passwords)
+2. **common-passwords** (1M most common)
+3. **john** (John the Ripper default)
+4. **darkweb2017** (10K from breaches)
+5. **Largest available** (if none of above found)
+
+### Benefits
+- ✅ **Project-local**: Wordlists travel with your project
+- ✅ **Version control**: Add to .gitignore to avoid committing large files  
+- ✅ **Auto-detection**: No need to specify `-w` for common use cases
+- ✅ **Easy cleanup**: `hashkit wordlist clear` removes all cached wordlists
 
 ## Configuration
 
@@ -291,10 +335,15 @@ mypy hashkit/
 
 ### Common Issues
 
-**"Wordlist not found"**
+**"Wordlist not found" or "No wordlists available"**
 ```bash
-# Download popular wordlists
+# Download popular wordlists to local wordlists/ folder
 hashkit wordlist download rockyou
+hashkit wordlist download john
+hashkit wordlist download common-passwords
+
+# List available wordlists
+hashkit wordlist list
 ```
 
 **"Hash type not identified"**

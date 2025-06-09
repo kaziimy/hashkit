@@ -20,7 +20,7 @@ class WordlistManager:
     """
     
     def __init__(self, cache_dir: Optional[str] = None):
-        self.cache_dir = cache_dir or os.path.join(os.path.expanduser('~'), '.hashkit', 'wordlists')
+        self.cache_dir = cache_dir or os.path.join(os.getcwd(), 'wordlists')
         self.ensure_cache_dir()
         
         # Popular wordlist URLs
@@ -262,3 +262,37 @@ class WordlistManager:
                         f.write(f"{word}\n")
         except Exception as e:
             raise WordlistError(f"Error writing merged wordlist: {e}")
+    
+    def clear_cache(self) -> Dict[str, any]:
+        """Clear all cached wordlists"""
+        if not os.path.exists(self.cache_dir):
+            return {
+                'deleted_files': 0,
+                'freed_space': 0,
+                'message': 'Wordlists directory does not exist'
+            }
+        
+        deleted_files = 0
+        freed_space = 0
+        
+        try:
+            for filename in os.listdir(self.cache_dir):
+                if filename.endswith('.txt'):
+                    file_path = os.path.join(self.cache_dir, filename)
+                    file_size = os.path.getsize(file_path)
+                    os.remove(file_path)
+                    deleted_files += 1
+                    freed_space += file_size
+            
+            # Remove directory if empty
+            if not os.listdir(self.cache_dir):
+                os.rmdir(self.cache_dir)
+            
+            return {
+                'deleted_files': deleted_files,
+                'freed_space': freed_space,
+                'message': f'Cleared {deleted_files} wordlists, freed {freed_space:,} bytes'
+            }
+            
+        except Exception as e:
+            raise WordlistError(f"Failed to clear cache: {e}")
