@@ -74,7 +74,7 @@ pip install -e .
 
 ### Development Installation
 ```bash
-git clone https://github.com/youruseabderrahimghazalirname/hashkit.git
+git clone https://github.com/abderrahimghazali/hashkit.git
 cd hashkit
 pip install -e ".[dev]"
 ```
